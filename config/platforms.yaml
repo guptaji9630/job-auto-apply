@@ -1,0 +1,50 @@
+# Platform-specific configuration overrides
+# This file can be used to override platform settings per environment
+
+linkedin:
+  selectors:
+    loginForm: "form.login-form"
+    jobCard: ".job-search-card"
+    jobTitle: "h3.job-title"
+    companyName: ".company-name"
+    location: ".job-location"
+    applyButton: "button.apply-button"
+    easyApplyModal: ".jobs-easy-apply-modal"
+    nextButton: "button[aria-label='Continue to next step']"
+    submitButton: "button[aria-label='Submit application']"
+
+naukri:
+  selectors:
+    loginForm: "form.login-form"
+    jobCard: ".job-card"
+    jobTitle: ".job-title"
+    companyName: ".company-name"
+    location: ".location"
+    applyButton: "button.apply-btn"
+    easyApplyModal: ".apply-modal"
+    nextButton: "button.next"
+    submitButton: "button.submit"
+
+indeed:
+  selectors:
+    loginForm: "form#login-form"
+    jobCard: ".job_seen_beacon"
+    jobTitle: "h2.jobTitle"
+    companyName: ".companyName"
+    location: ".companyLocation"
+    applyButton: "button#apply-button"
+    easyApplyModal: "#indeed-apply-modal"
+    nextButton: "button[data-testid='continue-button']"
+    submitButton: "button[data-testid='submit-button']"
+
+remote:
+  selectors:
+    loginForm: "form.login"
+    jobCard: ".job-card"
+    jobTitle: "h2.job-title"
+    companyName: ".company-name"
+    location: ".location"
+    applyButton: "button.apply"
+    easyApplyModal: ".modal"
+    nextButton: "button.next"
+    submitButton: "button.submit"

@@ -1,0 +1,78 @@
+app:
+  name: "job-auto-apply"
+  version: "1.0.0"
+  env: "development"
+  logLevel: "info"
+
+platforms:
+  linkedin:
+    enabled: true
+    rateLimit:
+      requestsPerMinute: 10
+      daily: 100
+    credentials: "LINKEDIN_CREDENTIALS"
+    baseUrl: "https://www.linkedin.com"
+    selectors:
+      loginForm: "form#login-form"
+      jobCard: ".job-card-container"
+      jobTitle: ".job-title"
+      companyName: ".company-name"
+      location: ".job-location"
+      applyButton: ".apply-button"
+      easyApplyModal: ".easy-apply-modal"
+      nextButton: "button[aria-label='Continue']"
+      submitButton: "button[aria-label='Submit application']"
+
+  naukri:
+    enabled: true
+    rateLimit:
+      requestsPerMinute: 15
+      daily: 150
+    credentials: "NAUKRI_CREDENTIALS"
+    baseUrl: "https://www.naukri.com"
+    selectors:
+      loginForm: "#login-form"
+      jobCard: ".jobTuple"
+      jobTitle: ".jobTitle"
+      companyName: ".companyName"
+      location: ".location"
+      applyButton: ".apply-button"
+      easyApplyModal: ".apply-modal"
+      nextButton: ".next-btn"
+      submitButton: ".submit-btn"
+
+  indeed:
+    enabled: true
+    rateLimit:
+      requestsPerMinute: 20
+      daily: 200
+    credentials: "INDEED_CREDENTIALS"
+    baseUrl: "https://www.indeed.com"
+    selectors:
+      loginForm: "#login-form"
+      jobCard: ".job-card"
+      jobTitle: ".job-title"
+      companyName: ".company-name"
+      location: ".job-location"
+      applyButton: ".apply-button"
+      easyApplyModal: ".indeed-apply-modal"
+      nextButton: ".next-button"
+      submitButton: ".submit-button"
+
+  remote:
+    enabled: true
+    rateLimit:
+      requestsPerMinute: 30
+      daily: 300
+    credentials: "REMOTE_CREDENTIALS"
+    baseUrl: "https://remoteok.io"
+    selectors:
+      loginForm: "#login-form"
+      jobCard: ".job-card"
+      jobTitle: ".job-title"
+      companyName: ".company-name"
+      location: ".job-location"
+      applyButton: ".apply-button"
+      easyApplyModal: ".apply-modal"
+      nextButton: ".next-btn"
+      submitButton: ".submit-btn"
