@@ -1,6 +1,5 @@
-import { LLMProvider } from '../ai/llm-provider';
-import { Resume, Experience } from '../../types';
-import { JobDetail, HiringManager } from '../../types';
+import type { LLMProvider } from '../ai/llm-provider';
+import type { Resume, Experience, JobDetail, HiringManager } from '../../types';
 
 const MESSAGE_TEMPLATES = {
   software_engineer: `Hi {{managerName}},

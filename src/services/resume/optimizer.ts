@@ -1,5 +1,5 @@
-import { LLMProvider } from '../ai/llm-provider';
-import { Resume, SkillCategory } from '../../types';
+import type { LLMProvider } from '../ai/llm-provider';
+import type { Resume, SkillCategory } from '../../types';
 
 export interface OptimizedResume extends Resume {
   optimizationNotes: string[];

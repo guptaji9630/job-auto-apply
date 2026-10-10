@@ -76,6 +76,7 @@ export interface JobSearchCriteria {
 }
 
 export interface ApplicationPackage {
+  resume?: Resume;
   resumePath: string;
   coverLetter?: string;
   answers: Record<string, string>;

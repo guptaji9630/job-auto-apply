@@ -1,5 +1,4 @@
 import { Command } from 'commander';
-import { config } from './config';
 import { browserManager } from './services/browser/browser-manager';
 import { CredentialVault } from './services/security/credential-vault';
 import { adapterRegistry } from './adapters/registry';
@@ -12,7 +11,6 @@ import { OpenAIProvider } from './services/ai/llm-provider';
 import { ResumeOptimizer } from './services/resume/optimizer';
 import { JobMatcher } from './services/matching/job-matcher';
 import { MessageGenerator } from './services/messaging/message-generator';
-import { parsePortfolioResume } from './services/resume/parser';
 
 const program = new Command();
 
@@ -60,7 +58,11 @@ program
     const messageGen = new MessageGenerator(llm);
     const scheduler = new JobScheduler(vault, optimizer, matcher, messageGen);
     
-    await scheduler.runOnce();
+    // Use options to filter platforms and limit applications
+    const platforms = options.platform ? [options.platform] : ['linkedin', 'naukri', 'indeed', 'remote'];
+    const maxApplications = parseInt(options.max, 10);
+    
+    await scheduler.runOnce(platforms, maxApplications);
     await browserManager.close();
   });
 
@@ -85,6 +87,9 @@ program
       browserManager.close();
       process.exit(0);
     });
+    
+    // Keep process alive
+    await new Promise(() => {});
   });
 
 // Test command
@@ -114,7 +119,7 @@ program
 
 program.parse();
 
-async function prompt(message: string, hidden = false): Promise<string> {
+async function prompt(message: string, _hidden = false): Promise<string> {
   return new Promise((resolve) => {
     process.stdout.write(message);
     process.stdin.once('data', (data) => resolve(data.toString().trim()));

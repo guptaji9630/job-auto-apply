@@ -1,6 +1,5 @@
-import { LLMProvider } from '../ai/llm-provider';
-import { Resume, Experience, Project, SkillCategory } from '../../types';
-import { JobListing } from '../../types';
+import type { LLMProvider } from '../ai/llm-provider';
+import type { Resume, Experience, Project, SkillCategory, JobListing } from '../../types';
 
 export interface ScoredJob {
   job: JobListing;
