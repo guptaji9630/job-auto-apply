@@ -4,6 +4,10 @@ app:
   env: "development"
   logLevel: "info"
 
+browser:
+  headless: false
+  args: ["--disable-blink-features=AutomationControlled", "--no-sandbox"]
+
 platforms:
   linkedin:
     enabled: true
