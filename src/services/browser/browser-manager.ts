@@ -32,10 +32,16 @@ export class BrowserManager {
 
     await applyStealth(context);
 
-    context.on('close', () => this.saveStorageState(platform, profileName, context));
-
     this.contexts.set(key, context);
     return context;
+  }
+
+  async saveContextStorageState(platform: PlatformType, profileName?: string): Promise<void> {
+    const key = `${platform}-${profileName || 'default'}`;
+    const context = this.contexts.get(key);
+    if (context) {
+      await this.saveStorageState(platform, profileName, context);
+    }
   }
 
   async newPage(context: BrowserContext): Promise<Page> {
@@ -75,7 +81,11 @@ export class BrowserManager {
   }
 
   async close(): Promise<void> {
-    for (const context of this.contexts.values()) await context.close();
+    for (const [key, context] of this.contexts.entries()) {
+      const [platform, profileName] = key.split('-');
+      await this.saveStorageState(platform as any, profileName || 'default', context);
+      await context.close();
+    }
     for (const browser of this.browsers.values()) await browser.close();
     this.contexts.clear();
     this.browsers.clear();

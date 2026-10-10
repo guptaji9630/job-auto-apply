@@ -21,20 +21,18 @@ describe('BrowserManager', () => {
   test('creates browser context for platform', async () => {
     const context = await browserManager.getContext('linkedin');
     expect(context).toBeDefined();
-    await context.close();
+    // Don't manually close - let afterEach handle it
   });
 
   test('creates browser context with profile name', async () => {
     const context = await browserManager.getContext('linkedin', 'test-profile');
     expect(context).toBeDefined();
-    await context.close();
   });
 
   test('reuses existing context for same platform and profile', async () => {
     const context1 = await browserManager.getContext('linkedin');
     const context2 = await browserManager.getContext('linkedin');
     expect(context1).toBe(context2);
-    await context1.close();
   });
 
   test('creates new page from context', async () => {
@@ -42,12 +40,11 @@ describe('BrowserManager', () => {
     const page = await browserManager.newPage(context);
     expect(page).toBeDefined();
     await page.close();
-    await context.close();
   });
 
   test('saves storage state on context close', async () => {
     const context = await browserManager.getContext('linkedin', 'storage-test');
-    await context.close();
+    await browserManager.saveContextStorageState('linkedin', 'storage-test');
 
     const profileDir = path.join(testUserDataDir, 'profiles');
     const storageFile = path.join(profileDir, 'linkedin-storage-test.json');
@@ -62,7 +59,6 @@ describe('BrowserManager', () => {
     expect(webdriver).toBeUndefined();
 
     await page.close();
-    await context.close();
   });
 
   test('closes all contexts and browsers', async () => {
