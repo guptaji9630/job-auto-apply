@@ -1,0 +1,26 @@
+# Production overrides for Render deployment
+browser:
+  headless: true
+
+scheduler:
+  cron: "0 9 * * 1-5"
+  maxApplicationsPerRun: 10
+
+# Override platform rate limits for production safety
+platforms:
+  linkedin:
+    rateLimit:
+      requestsPerMinute: 5
+      daily: 50
+  naukri:
+    rateLimit:
+      requestsPerMinute: 3
+      daily: 30
+  indeed:
+    rateLimit:
+      requestsPerMinute: 5
+      daily: 50
+  remote:
+    rateLimit:
+      requestsPerMinute: 8
+      daily: 100

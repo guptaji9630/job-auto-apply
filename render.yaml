@@ -1,0 +1,30 @@
+services:
+  - type: worker
+    name: job-auto-apply
+    runtime: node
+    plan: starter
+    buildCommand: |
+      npm ci
+      npx playwright install chromium
+      npx playwright install-deps chromium
+      npm run build
+    startCommand: npm run daemon
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MASTER_PASSWORD
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: LINKEDIN_EMAIL
+        sync: false
+      - key: LINKEDIN_PASSWORD
+        sync: false
+      - key: NAUKRI_EMAIL
+        sync: false
+      - key: NAUKRI_PASSWORD
+        sync: false
+      - key: INDEED_EMAIL
+        sync: false
+      - key: INDEED_PASSWORD
+        sync: false
