@@ -8,7 +8,7 @@ services:
       npx playwright install chromium
       npx playwright install-deps chromium
       npm run build
-    startCommand: echo "Worker entry point (cli.ts) not yet implemented - see Task 14 in plan"
+    startCommand: node dist/cli.js
     envVars:
       - key: NODE_ENV
         value: production

@@ -24,8 +24,8 @@ WORKDIR /app
 # Copy production package files
 COPY package*.json ./
 
-# Install only production dependencies
-RUN npm ci --omit=dev
+# Install only production dependencies, skip prepare script (husky)
+RUN npm ci --omit=dev --ignore-scripts
 
 # Copy compiled output from builder
 COPY --from=builder /app/dist ./dist
@@ -40,4 +40,4 @@ RUN chown -R pwuser:pwuser /app
 USER pwuser
 
 # Expose nothing (worker service)
-CMD ["echo", "Worker entry point (cli.ts) not yet implemented - see Task 14 in plan"]
+CMD ["node", "dist/cli.js"]
