@@ -20,6 +20,11 @@ export interface SelectorMap {
   submitButton: string;
 }
 
+export interface BrowserConfig {
+  headless?: boolean;
+  args?: string[];
+}
+
 export interface AppConfig {
   app: {
     name: string;
@@ -27,6 +32,7 @@ export interface AppConfig {
     env: string;
     logLevel: string;
   };
+  browser?: BrowserConfig;
   platforms: Record<PlatformType, PlatformConfig>;
 }
 
