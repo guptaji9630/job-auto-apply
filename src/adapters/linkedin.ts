@@ -81,8 +81,9 @@ export class LinkedInAdapter implements PlatformAdapter {
     await this.page.goto(`${this.baseUrl}/jobs/view/${jobId}`);
     await this.page.waitForSelector(linkedinSelectors.jobDetail.description, { timeout: 10000 });
     
-    return this.page.evaluate(() => ({
-      id: jobId,
+    // Pass jobId as argument to evaluate callback
+    return this.page.evaluate((id: string) => ({
+      id: id,
       platform: 'linkedin' as const,
       title: document.querySelector('.job-details-jobs-unified-top-card__job-title')?.textContent?.trim() || '',
       company: document.querySelector('.job-details-jobs-unified-top-card__company-name')?.textContent?.trim() || '',
@@ -93,7 +94,7 @@ export class LinkedInAdapter implements PlatformAdapter {
       benefits: [],
       postedDate: new Date(),
       url: window.location.href,
-    }));
+    }), jobId);
   }
 
   async applyToJob(job: JobDetail, application: ApplicationPackage): Promise<ApplyResult> {
@@ -141,9 +142,10 @@ export class LinkedInAdapter implements PlatformAdapter {
   }
 
   async fillApplicationForm(page: Page, application: ApplicationPackage): Promise<void> {
-    // Resume upload
+    // Resume upload (optional - only if file exists)
+    const fs = await import('fs');
     const fileInput = page.locator(linkedinSelectors.easyApply.fileUpload);
-    if (await fileInput.count() > 0) {
+    if (await fileInput.count() > 0 && application.resumePath && fs.existsSync(application.resumePath)) {
       await fileInput.setInputFiles(application.resumePath);
     }
     

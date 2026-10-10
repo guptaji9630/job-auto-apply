@@ -25,6 +25,25 @@ adapterRegistry.register(new NaukriAdapter());
 adapterRegistry.register(new IndeedAdapter());
 adapterRegistry.register(new RemoteAdapter());
 
+// Global cleanup function
+let isShuttingDown = false;
+async function gracefulShutdown(scheduler?: JobScheduler): Promise<void> {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+  
+  console.log('Shutting down gracefully...');
+  
+  try {
+    if (scheduler) {
+      scheduler.stop();
+    }
+    await browserManager.close();
+    console.log('Cleanup complete');
+  } catch (error) {
+    console.error('Error during shutdown:', error);
+  }
+}
+
 // Setup command
 program
   .command('setup')
@@ -61,8 +80,9 @@ program
     // Use options to filter platforms and limit applications
     const platforms = options.platform ? [options.platform] : ['linkedin', 'naukri', 'indeed', 'remote'];
     const maxApplications = parseInt(options.max, 10);
+    const role = options.role;
     
-    await scheduler.runOnce(platforms, maxApplications);
+    await scheduler.runOnce(platforms, maxApplications, role);
     await browserManager.close();
   });
 
@@ -82,11 +102,16 @@ program
     
     scheduler.start();
     
-    process.on('SIGINT', () => {
-      scheduler.stop();
-      browserManager.close();
+    const shutdown = async (signal: string) => {
+      console.log(`\nReceived ${signal}, shutting down...`);
+      await gracefulShutdown(scheduler);
       process.exit(0);
-    });
+    };
+    
+    process.on('SIGINT', () => shutdown('SIGINT'));
+    process.on('SIGTERM', () => shutdown('SIGTERM'));
+    
+    console.log('Daemon started. Press Ctrl+C to stop.');
     
     // Keep process alive
     await new Promise(() => {});
