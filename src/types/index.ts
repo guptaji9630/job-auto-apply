@@ -25,6 +25,11 @@ export interface BrowserConfig {
   args?: string[];
 }
 
+export interface SchedulerConfig {
+  cron: string;
+  maxApplicationsPerRun: number;
+}
+
 export interface AppConfig {
   app: {
     name: string;
@@ -33,6 +38,7 @@ export interface AppConfig {
     logLevel: string;
   };
   browser?: BrowserConfig;
+  scheduler?: SchedulerConfig;
   platforms: Record<PlatformType, PlatformConfig>;
 }
 
@@ -46,6 +52,9 @@ export interface JobListing {
   postedDate?: Date;
   salaryRange?: string;
   isRemote?: boolean;
+  remoteType?: 'remote' | 'hybrid' | 'onsite';
+  description?: string;
+  requirements?: string[];
 }
 
 export interface JobDetail extends JobListing {
@@ -61,11 +70,9 @@ export interface JobDetail extends JobListing {
 export interface JobSearchCriteria {
   keywords: string[];
   location?: string;
-  remote?: boolean;
-  experienceLevel?: 'entry' | 'mid' | 'senior' | 'lead';
-  jobType?: 'full-time' | 'part-time' | 'contract' | 'internship';
+  remoteOnly?: boolean;
+  experienceLevels?: string[];
   salaryMin?: number;
-  postedWithinDays?: number;
 }
 
 export interface ApplicationPackage {
@@ -106,4 +113,62 @@ export interface RateLimitConfig {
   requestsPerMinute: number;
   daily: number;
   cooldownMs?: number;
+}
+
+export interface AuthResult {
+  success: boolean;
+  sessionData?: any;
+  error?: string;
+}
+
+export interface PlatformCredentials {
+  email: string;
+  password: string;
+  totpSecret?: string;
+}
+
+export interface Resume {
+  personal: PersonalInfo;
+  professionalSummary: string;
+  education: Education[];
+  experience: Experience[];
+  projects: Project[];
+  skills: SkillCategory[];
+  certifications: string[];
+  languages: string[];
+}
+
+export interface PersonalInfo {
+  name: string;
+  email: string;
+  phone: string;
+  location: string;
+  linkedin: string;
+  github: string;
+  portfolio: string;
+}
+
+export interface Education {
+  degree: string;
+  institution: string;
+  location: string;
+  cgpa?: string;
+  period: string;
+}
+
+export interface Experience {
+  title: string;
+  company: string;
+  period: string;
+  items: string[];
+}
+
+export interface Project {
+  title: string;
+  items: string[];
+}
+
+export interface SkillCategory {
+  label: string;
+  skills: string;
 }
