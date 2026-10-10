@@ -8,8 +8,6 @@ import { applyStealth } from './stealth';
 
 interface PendingContext {
   promise: Promise<BrowserContext>;
-  resolve: (ctx: BrowserContext) => void;
-  reject: (err: Error) => void;
 }
 
 export class BrowserManager {
@@ -18,6 +16,7 @@ export class BrowserManager {
   private contexts: Map<string, BrowserContext> = new Map();
   private contextPending: Map<string, PendingContext> = new Map();
   private closingContexts: Set<string> = new Set();
+  private isClosing = false;
   private userDataDir: string;
 
   constructor(userDataDir: string = '.browser-profiles') {
@@ -26,6 +25,11 @@ export class BrowserManager {
 
   async getContext(platform: PlatformType, profileName?: string): Promise<BrowserContext> {
     const key = `${platform}-${profileName || 'default'}`;
+
+    // Block new acquisitions during shutdown
+    if (this.isClosing) {
+      throw new Error('BrowserManager is shutting down');
+    }
 
     // Check if context is being closed - if so, wait for it to be removed
     if (this.closingContexts.has(key)) {
@@ -49,43 +53,36 @@ export class BrowserManager {
       return pending.promise;
     }
 
-    // Create new pending context
-    const newPending: PendingContext = {
-      promise: null as any,
-      resolve: null as any,
-      reject: null as any,
-    };
-    newPending.promise = new Promise((resolve, reject) => {
-      newPending.resolve = resolve;
-      newPending.reject = reject;
-    });
-    this.contextPending.set(key, newPending);
+    // Create shared creation promise - SAME promise returned to all callers
+    const creationPromise = (async () => {
+      try {
+        const browser = await this.getOrCreateBrowser();
+        const context = await this.createContextWithStorage(browser, platform, profileName);
+        
+        await applyStealth(context);
+        
+        // Add close handler - synchronous map deletion, async storage save
+        context.on('close', () => {
+          this.contexts.delete(key);  // synchronous eviction
+          this.contextPending.delete(key); // clean up pending promise
+          this.closingContexts.add(key);
+          this.handleContextClose(key, platform, profileName || 'default', context)
+            .finally(() => {
+              this.closingContexts.delete(key);
+            });
+        });
 
-    try {
-      const browser = await this.getOrCreateBrowser();
-      const context = await this.createContextWithStorage(browser, platform, profileName);
-      
-      await applyStealth(context);
-      
-      // Add close handler - synchronous map deletion, async storage save
-      context.on('close', () => {
-        this.contexts.delete(key);  // synchronous eviction
-        this.contextPending.delete(key); // clean up pending promise
-        this.closingContexts.add(key);
-        this.handleContextClose(key, platform, profileName || 'default', context)
-          .finally(() => {
-            this.closingContexts.delete(key);
-          });
-      });
+        this.contexts.set(key, context);
+        return context;
+      } catch (err) {
+        this.contextPending.delete(key);
+        throw err;
+      }
+    })();
 
-      this.contexts.set(key, context);
-      newPending.resolve(context);
-      return context;
-    } catch (err) {
-      this.contextPending.delete(key);
-      newPending.reject(err as Error);
-      throw err;
-    }
+    // Store the promise and return it to ALL callers
+    this.contextPending.set(key, { promise: creationPromise });
+    return creationPromise;
   }
 
   private async handleContextClose(key: string, platform: PlatformType, profileName: string, context: BrowserContext): Promise<void> {
@@ -188,6 +185,7 @@ export class BrowserManager {
     if (!fs.existsSync(profileDir)) {
       fs.mkdirSync(profileDir, { recursive: true });
     }
+    // FIX: split only on first hyphen to preserve full profile name (e.g., "team-alice")
     const filePath = path.join(profileDir, `${platform}-${profileName || 'default'}.json`);
     await context.storageState({ path: filePath });
   }
@@ -197,10 +195,21 @@ export class BrowserManager {
   }
 
   async close(): Promise<void> {
-    // Save storage state for all active contexts BEFORE closing
+    // 1. Mark as closing - blocks new acquisitions (permanently after close)
+    this.isClosing = true;
+
+    // 2. Wait for all pending context creations to complete/fail
+    const pendingPromises = Array.from(this.contextPending.values()).map(p => p.promise);
+    await Promise.allSettled(pendingPromises);
+
+    // 3. Save storage state for all active contexts BEFORE closing
     for (const [key, context] of this.contexts.entries()) {
       if (!this.isClosed(context)) {
-        const [platform, profileName] = key.split('-');
+        // FIX: split only on first hyphen to preserve full profile name
+        const firstHyphen = key.indexOf('-');
+        const platform = firstHyphen >= 0 ? key.slice(0, firstHyphen) : key;
+        const profileName = firstHyphen >= 0 ? key.slice(firstHyphen + 1) : 'default';
+        
         try {
           await this.saveStorageState(platform as any, profileName || 'default', context);
         } catch (err) {
@@ -209,7 +218,7 @@ export class BrowserManager {
       }
     }
 
-    // Close all contexts
+    // 4. Close all contexts
     for (const context of this.contexts.values()) {
       try {
         await context.close();
@@ -218,7 +227,7 @@ export class BrowserManager {
       }
     }
 
-    // Close all browsers
+    // 5. Close all browsers
     for (const browser of this.browsers.values()) {
       try {
         await browser.close();
@@ -227,10 +236,13 @@ export class BrowserManager {
       }
     }
 
+    // 6. Clear all maps (keep isClosing = true to block future acquisitions)
     this.contexts.clear();
     this.browsers.clear();
     this.browserPending.clear();
     this.contextPending.clear();
+    this.closingContexts.clear();
+    // isClosing stays true permanently after close
   }
 }
 
